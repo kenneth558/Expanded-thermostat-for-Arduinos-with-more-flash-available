@@ -1,4 +1,4 @@
-#Thertmostat...expanded for Arduinos with more flash available
+# Thermostat...expanded for Arduinos with more flash available
 This adds features that the first thermostat sketch could not fit into a number of 32K flash Arduinos that did not make 
 their full flash capacity available for sketches. So don't expect it to fit in Leonardo.
 
