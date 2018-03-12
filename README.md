@@ -1,6 +1,6 @@
-# Expanded-thermostat-for-Arduinos-with-more-flash-available
+#Thertmostat...expanded for Arduinos with more flash available
 This adds features that the first thermostat sketch could not fit into a number of 32K flash Arduinos that did not make 
-their full flash capacity available for sketches.
+their full flash capacity available for sketches. So don't expect it to fit in Leonardo.
 
 First, a recap of the base features included in the thermostat version for 32K flash boards that don't allow that full 
 32K for sketches:
