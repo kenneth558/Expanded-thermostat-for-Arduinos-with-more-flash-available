@@ -5,18 +5,16 @@ their full flash capacity available for sketches. So don't expect this expanded 
 First, a recap of the base features included in the thermostat version for 32K flash boards that don't allow that full 
 32K for sketches:
 
-You'll need to download four files: the .ino and the three .h files.  IF USING TTGO XI/WeMo XI YOU'LL ALSO NEED WHAT YOU'LL FIND AT   https://github.com/wemos/Arduino_XI  (IDE support for TTGO XI/WeMo XI), BUT IF YOU COMPILE UNDER LINUX, READ THAT ISSUES SECTION FOR THE BOARDS.TXT FILE MODIFICATION DUE TO THE DIRECTORY DELIMITER CHARACTER DIFFERENCE ( \ -> / ) 
+You'll need to download four files: the .ino and the three .h files.  
+
 # Arduino_home_thermostat
-I use this sketch in the Arduino UNO, Mega2560, Leonardo and Wemo XI (TTGO XI) as my thermostat, and you can easily modify
+I use this sketch in the Arduino UNO, Mega2560, nano, etc. as my thermostat, and you can easily modify
 it for humidistat as well.  I have compiled it for all boards I could select in the IDE and ensured it would compile for 
 the boards having at least 32K flash.
 
 Currently DHT11, DHT22, and KY-013 sensors only are supported.  Obviously, the DHT sensors can connect to Digital and 
-dual-mode pins while the KY-013 can connect to Analog and dual-mode pins. Note that the accuracy of a KY-013 analog sensor
-depends on the DC voltage supplying the "-" pin (these sensors are labeled opposite what the sketch formula is!)  For the 
-best accuracy, supply these sensors with an adjustable and stable supply of about 3.3 to 4.5 volts.  The TTGO XI/WeMo XI 
-boards that I have gives accurate readings when the 3v3 pin supplies the sensor (3.3 volts).  Adjust the voltage for 
-accurate readings and enjoy.
+dual-mode pins while the KY-013 can connect to Analog and dual-mode pins. Note that the default accuracy of a KY-013 analog sensor depends on the DC voltage supplying the "-" pin (these sensors are labeled opposite what the sketch formula is!)
+For the best accuracy, adjust the per-sensor pin calibration value OR supply these sensors with an adjustable and stable supply of about 5 volts +/- a volt.  Adjust the voltage for accurate readings.
 
 This sketch also makes Arduino digital pins to be readable and settable from an optional serial-connected host computer.  
 The host computer can control and read both the digital voltage levels and DHT data of any pin.  For maximum capability, 
@@ -32,13 +30,12 @@ alerts to the host for furnace failure to heat. I use a bash script on the host 
 EEPROM is utilized so the thermostat settings are persistent across power cycling.  I even update the compiled sketch into 
 the board remotely!
 
-See the screen shot of the help screen that it can display.  Sensors must be either DHT11, DHT22, or KY-013 in this version.
-It expects two sensors - a primary and a backup (secondary) sensor for failsafe operation.  Because sensors are read without
-utilizing interrupts, any digital pin other than the serial communications can be used for DHT sensors!  A little-documented
-feature is that the pins driving sensors can be forced to only allow DHT devices by adding 128 to the EEPROM location 
-storing the digital pin number for that sensor.  This is a safety feature: in case the DHT sensor fails, the 128 added to 
-the pin number stored in EEPROM prevents the pin from going into analog mode and interpreting any voltage appearing on the 
-pin as a signal from an analog (KY-013) temperature sensor.
+See the screen shot of the help screen that it can display.  Sensors must be either DHT11, DHT22, or KY-013 in this version.  It expects two sensors - a primary and a backup (secondary) sensor for failsafe operation.  Because sensors are
+read without utilizing interrupts, any digital pin other than the serial communications can be used for DHT sensors!  A
+little-documented feature is that the pins driving sensors can be forced to only allow DHT devices by adding 128 to the
+EEPROM location storing the digital pin number for that sensor.  This is a safety feature: in case the DHT sensor fails,
+the 128 added to the pin number stored in EEPROM prevents the pin from going into analog mode and interpreting any voltage
+appearing on the pin as a signal from an analog (KY-013) temperature sensor.
 
 This sketch is also a wrapper to allow the host computer to read and control the Arduino digital pins with or without taking
 advantage of the thermostat functionality!  As examples:
@@ -48,8 +45,8 @@ advantage of the thermostat functionality!  As examples:
 
 -  I have my coffee maker outlet connected to another pin and host-controlled on a schedule 
 
--  The host computer can read temperatures and humidities from more DHT11/22 devices on other pins.  Outdoor temperature and
-   humidity can thus be acquired by the host computer
+-  The host computer can read temperatures and humidities from more DHT11/22 devices on other pins.  Outdoor temperature
+    and humidity can thus be acquired by the host computer
 
 -  Ceiling fan control
 
@@ -65,9 +62,9 @@ EEPROM command line settings are set for 1K EEPROM.  That is the minimum block s
 EEPROM by the compiler and this sketch will not fit.  Fortunately for me, my default compiler settings were correct to this
 requirement, otherwise I wouldn't know how to change them back to what they are.
 
-IMPORTANT SAFETY NOTE - Proper electrical isolation by relay or opto-isolation must be observed whenever connecting to build
-ing electrical or furnace controls or other electrical equipment.  For the furnace controls, I use ralays driven by 
-open-collector NPN transistors with a 12vdc power supply.  Don't forget the diode across the relay coil.  For 120vac 
+IMPORTANT SAFETY NOTE - Proper electrical isolation by relay or opto-isolation must be observed whenever connecting to 
+building electrical or furnace controls or other electrical equipment.  For the furnace controls, I use ralays driven by 
+open-collector NPN transistors with a 12vdc power supply.  Don't forget the diode across the relay coil.  For 120vac
 switching, I use opto-coupled dc-drive SSRs, again, driven by NPN transistors and 12vdc.
 
 TODO - Future enhancements are reserved for boards having greater than 32K flash size: I2C port expansion, duct damper 
