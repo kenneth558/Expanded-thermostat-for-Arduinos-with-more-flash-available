@@ -75,3 +75,6 @@ operation for multi-thermostat-single-furnace environments.
 
 WANTED:  ASSISTANCE CONDENSING THE SIZE OF THIS SKETCH BY USE OF ASM CODE.  ANY TAKERS?  POST AN ISSUE, PLEASE.
 
+# KY-013 per-sensor calibration is NOW included as of version .0.9.
+
+EEPROM address 14 begins an array of calibration offsets, one per Analog pin.  The factory defaults this value for entire array to one that worked for uno when the KY-013 was powered by 5vdc: -56, for all Analog pins.  Since the -56 is displayed as an unsigned char, it shows as 200 when viewing persistent memory.  When manually changing a calibration offset for a sensor, you'll need to enter the value as an unsigned char inasmuch as values above 127 to 255 are actually negative offsets: 255 = -1 and 200 = -56.
