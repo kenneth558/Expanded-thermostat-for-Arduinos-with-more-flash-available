@@ -1,10 +1,10 @@
 /***********************************************************************************************************************
- *      ARDUINO HOME THERMOSTAT SKETCH  v.0.6 still
+ *      ARDUINO HOME THERMOSTAT SKETCH  v.0.9
  *      Author:  Kenneth L. Anderson
  *      Boards tested on: Uno Mega2560 WeMo XI/TTGO XI Leonardo Nano
- *      Date:  03/11/18 still
+ *      Date:  03/12/18
  * 
- * still
+ * 
  * TODO:  labels to pins 
  *        Add more externally-scripted functions, like entire port pin changes, watches on pins with routines that will execute routines to any combo of pins upon pin[s] conditions,
  *        alert when back pressure within furnace indicates to change filter
@@ -17,7 +17,7 @@
  *                                                                  fan is the term for same part but for the thermostat operator person
  * 
  *************************************************************************************************************************/
-#define VERSION "0.6"
+#define VERSION "0.9"
 // On the first run of this sketch, if you received an error message about the following line...
 // #define RESTORE_FACTORY_DEFAULTS //As the error message said, uncomment this line, compile & load for first run EEPROM setup in WeMo XI/TTGO XI and any other board that needs it, then comment back out and recompile and load b/c sketch would be too long otherwise
 #ifndef u8
@@ -70,6 +70,9 @@ u8 secondary_temp_sensor_address = 8;
 u8 cool_pin_address = 9;
 u8 outdoor_temp_sensor1_address = 10;
 u8 outdoor_temp_sensor2_address = 11;
+#ifdef PIN_A0 
+    u8 calibration_offset_array_start_address_first_byte = 12;//will occupy two bytes
+#endif
 
 #define NO_BOUNDS_CHECK 0
 #define HEAT_TEMP_BOUNDS_CHECK 1
@@ -227,16 +230,11 @@ void EEPROMupdate ( unsigned long address, u8 val )
 
 void assign_pins( bool already_running )
 {
-    if( already_running )
-    {
-        digitalWrite( heat_pin, LOW );
-        digitalWrite( cool_pin, LOW );
-        digitalWrite( furnace_blower_pin, LOW );
-    }
-    else
-    {
-        fan_mode = ( char )EEPROM.read( fan_mode_address );//a';//Can be either auto (a) or on (o)
-    }
+    digitalWrite( heat_pin, LOW );
+    digitalWrite( cool_pin, LOW );
+    digitalWrite( furnace_blower_pin, LOW );
+//lines above cover pins getting changed below.  It is actually a feature of this sketch
+    fan_mode = ( char )EEPROM.read( fan_mode_address );//a';//Can be either auto (a) or on (o)
     primary_temp_sensor_pin = EEPROM.read( primary_temp_sensor_address ); 
     secondary_temp_sensor_pin = EEPROM.read( secondary_temp_sensor_address );
     outdoor_temp_sensor1_pin = EEPROM.read( outdoor_temp_sensor1_address );
@@ -385,9 +383,9 @@ boolean IsValidPinNumber( const char* str, u8 type_analog_allowed )
     u8 j = i;
     while( isdigit( str[ j ] ) ) j++;
     pin_specified = ( u8 )atoi( str );
-    if( j == i || ( !type_analog_allowed && ( pin_specified & 0x7F ) >= NUM_DIGITAL_PINS ) || ( type_analog_allowed == TYPE_ANALOG && !memchr( analog_pin_list, pin_specified, PIN_Amax ) ) )
+    if( j == i || ( !type_analog_allowed && ( ( pin_specified & 0x7F ) >= NUM_DIGITAL_PINS ) ) || ( ( pin_specified & 0x7F ) >= NUM_DIGITAL_PINS && !memchr( analog_pin_list, pin_specified, PIN_Amax ) ) )
     {
-        Serial.println( F( "Pin # error-see help screen" ) );
+        Serial.println( F( " Pin # error-see help screen" ) );
         return false;
     }
     return true;
@@ -676,6 +674,10 @@ void setup()
 #endif
     lower_cool_temp_floated = ( float )( ( float )( lower_cool_temp_shorted_times_ten ) / 10 );
     logging = ( boolean )EEPROM.read( logging_address );
+#ifdef PIN_A0
+    calibration_offset = EEPROM.read( calibration_offset_array_start_address_first_byte );
+    calibration_offset += ( ( u16 )EEPROM.read( calibration_offset_array_start_address_first_byte + 1 ) ) << 8;
+#endif
 }
 
 void fixInputted( u8 functionDesired, const char *strToFind, const char *strToReplaceWith, u8 lengthGoal )
