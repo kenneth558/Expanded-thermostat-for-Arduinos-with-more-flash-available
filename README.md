@@ -1,6 +1,6 @@
 # Thermostat...expanded for Arduinos with more flash available
 This adds features that the first thermostat sketch could not fit into a number of 32K flash Arduinos that did not make 
-their full flash capacity available for sketches. So don't expect this expanded one to fit in Leonardos, Esplora nor Yún, for examples.  At some point in future enhancements, I foresee a time when the sketch will require the board to have at least 64K flash size.
+their full flash capacity available for sketches. So don't expect this expanded one to fit in Leonardos, Esplora nor Yún, for examples.  If you need KY-013 analog sensors with those boards, see my thermostat repository where I removed the thermostat "auto" option so those boards can have calibrated KY-013 with DHT capability.  At some point in future enhancements, I foresee a time when the sketch will require the board to have at least 64K flash size.
 
 First, a recap of the base features included in the thermostat version for 32K flash boards that don't allow that full 
 32K for sketches:
