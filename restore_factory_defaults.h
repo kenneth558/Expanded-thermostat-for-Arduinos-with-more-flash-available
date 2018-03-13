@@ -141,22 +141,32 @@ void restore_factory_defaults()
 #endif
 #ifdef PIN_A0
     #ifndef __LGT8FX8E__
-        EEPROM.put( calibration_offset_array_start_address_first_byte, calibration_offset_array_start_address_first_byte + 2 );//This is done so we can more easily change location of this array in future revision, maybe to an end-of-EEPROM-refenced location
+        EEPROM.put( calibration_offset_array_start_address_first_byte, ( u16 )lower_cool_temp_address - sizeof( analog_pin_list ) );//This is done so we can more easily change location of this array in future revision, maybe to an end-of-EEPROM-refenced location
     #else
-        EEPROMupdate( calibration_offset_array_start_address_first_byte, calibration_offset_array_start_address_first_byte + 2, calibration_offset_array_start_address_first_byte );
-        EEPROMupdate( calibration_offset_array_start_address_first_byte + 1, ( u8 )( calibration_offset_array_start_address_first_byte + 2 ) ) >> 8;
+        EEPROMupdate( calibration_offset_array_start_address_first_byte, ( u8 )( lower_cool_temp_address - sizeof( analog_pin_list ) ) );
+        EEPROMupdate( calibration_offset_array_start_address_first_byte + 1, ( u8 )( lower_cool_temp_address - sizeof( analog_pin_list ) ) >> 8 );
     #endif
     calibration_offset = EEPROM.read( calibration_offset_array_start_address_first_byte );
     calibration_offset += ( ( u16 )EEPROM.read( calibration_offset_array_start_address_first_byte + 1 ) ) << 8;
-    for( u8 i = 0; i < sizeof( analog_pin_list ); i++ )
+    u8 i;
+    for( i = 0; i < sizeof( analog_pin_list ); i++ )
     {
 #ifndef __LGT8FX8E__
         EEPROM.update( calibration_offset + i, 200 ); //the 200 unsigned equates to - 56 signed, adjust to your heart's content for a default analog calibration adjust based on supply voltage.  Tweak each sensor uniquely in the array for further accuracy
 #else
         EEPROMupdate( calibration_offset + i, 200 );
 #endif
+//        Serial.println( analog_pin_list[ i ] );
     }
 #endif
+//    Serial.println( logging_address );//
+//    Serial.println( upper_heat_temp_address );// = logging_address - sizeof( short );//EEPROMlength - 2;
+//    Serial.println( lower_heat_temp_address );// = upper_heat_temp_address - sizeof( short );//EEPROMlength - 3;
+//    Serial.println( logging_temp_changes_address );// = lower_heat_temp_address - sizeof( boolean );//EEPROMlength - 4;
+//    Serial.println( upper_cool_temp_address );// = logging_temp_changes_address - sizeof( short );
+//    Serial.println( lower_cool_temp_address );// = upper_cool_temp_address - sizeof( short );
+//    Serial.println( calibration_offset );// = upper_cool_temp_address - sizeof( short );
+//    Serial.println( i );// = upper_cool_temp_address - sizeof( short );
     assign_pins( NOT_RUNNING );
 
     Serial.println( F( "Done. Unplug board now if desired." ) );
