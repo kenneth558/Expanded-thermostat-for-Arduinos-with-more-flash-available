@@ -24,6 +24,7 @@
         #define PIN_A18 A18
         #define PIN_A19 A19
         #define PIN_A20 A20
+
     #endif
     #if defined ( PIN_A20 ) && not defined ( PIN_Amax )
         #define PIN_Amax PIN_A20
