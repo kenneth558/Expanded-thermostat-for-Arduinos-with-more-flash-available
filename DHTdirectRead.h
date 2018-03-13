@@ -57,7 +57,10 @@ DHTresult DHTfunctionResultsArray[ 15 ]; //The last entry will be the return val
             pin = ( u8 ) ( sizeof( DHTfunctionResultsArray ) / sizeof( DHTresultStruct ) );
 //Serial.println( calibration_offset + ( unsigned long )memchr( analog_pin_list, pin, PIN_Amax ) - ( unsigned long )&analog_pin_list[ 0 ] );
 //        double Temp = log( ( 10240000 / ( analogRead( pin ) - 56 ) ) - 10000 );//the - 56 is rough guess at a starting point for the calibration value.  It equates to 200 converted to signed char.  The 200 gets stored in EEPROM at the location that can be printed from the line above this line, then use the line below this line instead of this line.  Do for each analog sensor changing the 200 to what you really need
-        double Temp = log( ( 10240000 / ( analogRead( pin ) + ( signed char )EEPROM.read( calibration_offset + ( unsigned long )memchr( analog_pin_list, pin, PIN_Amax ) - ( unsigned long )&analog_pin_list[ 0 ] ) ) ) - 10000 );
+        double Temp = log( ( 10240000 / ( analogRead( pin ) + \
+        ( ( signed char )EEPROM.read( calibration_offset + ( unsigned long )memchr( analog_pin_list, pin, PIN_Amax ) - ( unsigned long )&analog_pin_list[ 0 ] ) * 0.2 ) + \
+        ( ( signed char )EEPROM.read( calibration_offset + ( unsigned long )memchr( analog_pin_list, pin, PIN_Amax ) - ( unsigned long )&analog_pin_list[ 0 ] ) * 0.8 * ( 1 - ( ( 512 - abs( max( 512 - analogRead( pin ), analogRead( pin ) - 512 ) ) ) / 512 ) ) ) \
+        ) ) - 10000 );
         Temp = ( 1 / ( 0.001129148 + ( 0.000234125 + ( 0.0000000876741 * Temp * Temp ) ) * Temp ) ) - 273.15;//startpoint as provided, close enough when using 3.3v for sensor supply
     //    Temp = ( 1 / ( 0.001129148 + ( 0.000234125 + ( 0.0000000876741 * Temp * Temp ) ) * Temp ) ) - 294.45; //wen connected to full Vcc accurate at 21.4
         DHTfunctionResultsArray[ pin - 1 ].TemperatureCelsius = ( short )( Temp * 10 );
