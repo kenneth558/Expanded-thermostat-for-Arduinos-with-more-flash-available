@@ -86,7 +86,7 @@ So you ask, "What does the -56 correlate to?"  Right now as this sentence is bei
 add to the raw analog reading.  The other 80% of that value is scaled by how close/distant the reading is from mid-scale
 (512) - the closer to mid-scale, the more of that last 80% of the value is added again.  The source code is written with
 those two elements of the ratio nearby each other in an editor for easy adjustment if you'd rather have more of the offset
- be absolute or be based on the analog value received by the pin.
+being absolute or be based on the analog value received by the pin.  I don't expect this to be the final calibration algorithm I employ.
 
 Again, just to clarify, that value is set to a default value when the sketch configures EEPROM at first-run, and you, the
 user/sketch-editor are expected to fine-tune the value.  There is a separate value for each analog pin in an array whose
