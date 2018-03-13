@@ -152,9 +152,9 @@ void restore_factory_defaults()
     for( i = 0; i < sizeof( analog_pin_list ); i++ )
     {
 #ifndef __LGT8FX8E__
-        EEPROM.update( calibration_offset + i, 160 ); //the 200 unsigned equates to - 56 signed, adjust to your heart's content for a default analog calibration adjust based on supply voltage.  Tweak each sensor uniquely in the array for further accuracy
+        EEPROM.update( calibration_offset + i, 200 ); //the 200 unsigned equates to - 56 signed, adjust to your heart's content for a default analog calibration adjust based on supply voltage.  Tweak each sensor uniquely in the array for further accuracy
 #else
-        EEPROMupdate( calibration_offset + i, 160 );
+        EEPROMupdate( calibration_offset + i, 200 );
 #endif
 //        Serial.println( analog_pin_list[ i ] );
     }
