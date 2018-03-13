@@ -95,3 +95,6 @@ addressing?  Because that array size is dependent on how many Analog pins are on
 items stored to be unpredictably located, and I'd rather have that stable EEPROM location of 14 to store an upcoming EEPROM
 feature (probably user-defined pin names).
 
+Note that to convert an address stored spanning two locations, you consider the second location to be showing the number of 
+times 256 can fit in the final number:  if location 13 has a 3, for example, that becomes 768 added to whatever value is in loation 12.
+
