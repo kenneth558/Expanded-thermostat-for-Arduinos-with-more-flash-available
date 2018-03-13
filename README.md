@@ -90,8 +90,8 @@ being absolute or be based on the analog value received by the pin.  I don't exp
 
 Again, just to clarify, that value is set to a default value when the sketch configures EEPROM at first-run, and you, the
 user/sketch-editor are expected to fine-tune the value.  There is a separate value for each analog pin in an array whose
-beginning bounds is found at EEPROM ("persistent memory") address 14.  In order to facilitate future re-location of that
-array in future sketch versions, its beginning address is actually stored in addresses 12 & 13. The reason?  Because that
-array size is dependent on how many Analog pins are on the board, and I'd rather have that stable EEPROM location of 14 to
-store the next EEPROM feature of user-defined pin names.
+beginning bounds is the address contained in EEPROM ("persistent memory") location 12-13. The reason for the indirect 
+addressing?  Because that array size is dependent on how many Analog pins are on the board, thus causing any following 
+items stored to be unpredictably located, and I'd rather have that stable EEPROM location of 14 to store an upcoming EEPROM
+feature (probably user-defined pin names).
 
