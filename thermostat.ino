@@ -1,8 +1,8 @@
 /***********************************************************************************************************************
- *      ARDUINO HOME THERMOSTAT SKETCH  v.0.9
+ *      ARDUINO HOME THERMOSTAT SKETCH  v.0.10
  *      Author:  Kenneth L. Anderson
  *      Boards tested on: Uno Mega2560 WeMo XI/TTGO XI Leonardo Nano
- *      Date:  03/12/18
+ *      Date:  03/13/18
  * 
  * 
  * TODO:  labels to pins 
@@ -17,7 +17,7 @@
  *                                                                  fan is the term for same part but for the thermostat operator person
  * 
  *************************************************************************************************************************/
-#define VERSION "0.9"
+#define VERSION "0.10"
 // On the first run of this sketch, if you received an error message about the following line...
 // #define RESTORE_FACTORY_DEFAULTS //As the error message said, uncomment this line, compile & load for first run EEPROM setup in WeMo XI/TTGO XI and any other board that needs it, then comment back out and recompile and load b/c sketch would be too long otherwise
 #ifndef u8
@@ -27,7 +27,7 @@
     #define u16 uint16_t
 #endif
 #include "analog_pin_adjust.h"
-#include <EEPROM.h>
+#include <EEPROM.h> // Any board that errors compiling this line is unsuitable to be a thermostat because it cannot store settings persistently
 #include "DHTdirectRead.h"
 
 #define _baud_rate_ 57600 //Very much dependent upon the capability of the host computer to process talkback data, not just baud rate of its interface
@@ -142,7 +142,11 @@ const u8 PROGMEM factory_setting_power_cycle_pin PROGMEM = 5;
 const u8 PROGMEM factory_setting_cool_pin PROGMEM = 9;
 const bool PROGMEM factory_setting_logging_setting PROGMEM = true;
 const bool PROGMEM factory_setting_logging_temp_changes_setting PROGMEM = true;
-const char PROGMEM factory_setting_thermostat_mode PROGMEM = 'a';
+#if not defined ( __LGT8FX8E__ ) && not defined ( ARDUINO_AVR_YUN ) && not defined ( ARDUINO_AVR_LEONARDO ) && not defined ( ARDUINO_AVR_LEONARDO_ETH ) && not defined ( ARDUINO_AVR_MICRO ) && not defined ( ARDUINO_AVR_ESPLORA ) && not defined ( ARDUINO_AVR_LILYPAD_USB ) && not defined ( ARDUINO_AVR_YUNMINI ) && not defined ( ARDUINO_AVR_INDUSTRIAL101 ) && not defined ( ARDUINO_AVR_LININO_ONE )
+    const char PROGMEM factory_setting_thermostat_mode PROGMEM = 'a';
+#else
+    const char PROGMEM factory_setting_thermostat_mode PROGMEM = 'h';
+#endif
 const char factory_setting_fan_mode PROGMEM = 'a';
 const float factory_setting_lower_heat_temp_floated PROGMEM = 22.4;
 const float factory_setting_upper_heat_temp_floated PROGMEM = 23;
@@ -257,28 +261,32 @@ void assign_pins( bool already_running )
 void printThermoModeWord( char setting_char, bool newline )
 {
     const char *setting PROGMEM;
-    if( setting_char == 'a' )
-        setting = str_auto;
-    else if( setting_char == 'o' )
+    if( setting_char == 'o' )
         setting = str_off;
     else if( setting_char == 'h' )
         setting = str_heat;
     else if( setting_char == 'c' )
         setting = str_cool;
+#if not defined ( __LGT8FX8E__ ) && not defined ( ARDUINO_AVR_YUN ) && not defined ( ARDUINO_AVR_LEONARDO ) && not defined ( ARDUINO_AVR_LEONARDO_ETH ) && not defined ( ARDUINO_AVR_MICRO ) && not defined ( ARDUINO_AVR_ESPLORA ) && not defined ( ARDUINO_AVR_LILYPAD_USB ) && not defined ( ARDUINO_AVR_YUNMINI ) && not defined ( ARDUINO_AVR_INDUSTRIAL101 ) && not defined ( ARDUINO_AVR_LININO_ONE )
+    else if( setting_char == 'a' )
+        setting = str_auto;
+#endif
     Serial.print( ( const __FlashStringHelper * )setting );
     if( newline ) Serial.println();
 }
 
 void printThermoModeWord( long unsigned var_with_setting, bool newline )
 {
-    if( thermostat_mode == 'a' )
-        var_with_setting = ( long unsigned )str_auto;
-    else if( thermostat_mode == 'o' )
+    if( thermostat_mode == 'o' )
         var_with_setting = ( long unsigned )str_off;
     else if( thermostat_mode == 'h' )
         var_with_setting = ( long unsigned )str_heat;
     else if( thermostat_mode == 'c' )
         var_with_setting = ( long unsigned )str_cool;
+#if not defined ( __LGT8FX8E__ ) && not defined ( ARDUINO_AVR_YUN ) && not defined ( ARDUINO_AVR_LEONARDO ) && not defined ( ARDUINO_AVR_LEONARDO_ETH ) && not defined ( ARDUINO_AVR_MICRO ) && not defined ( ARDUINO_AVR_ESPLORA ) && not defined ( ARDUINO_AVR_LILYPAD_USB ) && not defined ( ARDUINO_AVR_YUNMINI ) && not defined ( ARDUINO_AVR_INDUSTRIAL101 ) && not defined ( ARDUINO_AVR_LININO_ONE )
+    else if( thermostat_mode == 'a' )
+        var_with_setting = ( long unsigned )str_auto;
+#endif
 //    else return false;
     Serial.print( ( const __FlashStringHelper * )var_with_setting );
     if( newline ) Serial.println();
@@ -446,7 +454,11 @@ void printBasicInfo()
     }
     Serial.print( F( "Version: " ) );
     Serial.println( F( VERSION ) );
+#if not defined ( __LGT8FX8E__ ) && not defined ( ARDUINO_AVR_YUN ) && not defined ( ARDUINO_AVR_LEONARDO ) && not defined ( ARDUINO_AVR_LEONARDO_ETH ) && not defined ( ARDUINO_AVR_MICRO ) && not defined ( ARDUINO_AVR_ESPLORA ) && not defined ( ARDUINO_AVR_LILYPAD_USB ) && not defined ( ARDUINO_AVR_YUNMINI ) && not defined ( ARDUINO_AVR_INDUSTRIAL101 ) && not defined ( ARDUINO_AVR_LININO_ONE )
     Serial.print( F( "Operating mode (heat/cool/auto/off)=" ) );
+#else
+    Serial.print( F( "Operating mode (heat/cool/off)=" ) );
+#endif
     printThermoModeWord( thermostat_mode, true );
     Serial.print( F( "Fan mode=" ) );
     if( fan_mode == 'a' ) Serial.println( F( "auto" ) );
@@ -542,7 +554,11 @@ void print_factory_defaults()
     Serial.print( F( "Version: " ) );
     Serial.print( F( VERSION ) );
     Serial.println( F( " Factory defaults:" ) );
+#if not defined ( __LGT8FX8E__ ) && not defined ( ARDUINO_AVR_YUN ) && not defined ( ARDUINO_AVR_LEONARDO ) && not defined ( ARDUINO_AVR_LEONARDO_ETH ) && not defined ( ARDUINO_AVR_MICRO ) && not defined ( ARDUINO_AVR_ESPLORA ) && not defined ( ARDUINO_AVR_LILYPAD_USB ) && not defined ( ARDUINO_AVR_YUNMINI ) && not defined ( ARDUINO_AVR_INDUSTRIAL101 ) && not defined ( ARDUINO_AVR_LININO_ONE )
     Serial.print( F( "Operating mode (heat/cool/auto/off)=" ) );
+#else
+    Serial.print( F( "Operating mode (heat/cool/off)=" ) );
+#endif
     printThermoModeWord( factory_setting_thermostat_mode, true );
     Serial.print( F( "Fan mode=" ) );
     if( factory_setting_fan_mode == 'a' ) Serial.println( F( "auto" ) );
@@ -753,7 +769,7 @@ void showCoolSettings( void )
     Serial.println( upper_cool_temp_floated, 1 );
 }
 
-void check_for_serial_input( char result )
+void check_for_serial_input()
 {
     
     
@@ -976,8 +992,6 @@ void check_for_serial_input( char result )
         }
         else if( strstr_P( strFull, str_report_master_room_temp ) )
         {
-           if( result == DEVICE_READ_SUCCESS )
-           {
                Serial.print( F( "Humidity (%): " ) );
                Serial.println( _HumidityPercent, 1 );
                Serial.print( F( "Temperature (°C): " ) );
@@ -990,12 +1004,6 @@ void check_for_serial_input( char result )
                Serial.println( digitalRead( furnace_blower_pin ) );
                Serial.print( F( "Cool: " ) );
                Serial.println( digitalRead( cool_pin ) );
-           }
-           else
-           {
-                Serial.println( F( "Sensor didn't read" ) );
-           }
-            
         }
         else if( strstr_P( strFull, str_read_pin ) || strstr_P( strFull, str_pin_read ) )
         {
@@ -1207,6 +1215,7 @@ doneWithPinOutput:;
         {
             if( strlen( strFull ) == 4 ) goto showThermostatSetting;
             if( strFull[ 4 ] != ' ' ) goto notValidCommand;
+#if not defined ( __LGT8FX8E__ ) && not defined ( ARDUINO_AVR_YUN ) && not defined ( ARDUINO_AVR_LEONARDO ) && not defined ( ARDUINO_AVR_LEONARDO_ETH ) && not defined ( ARDUINO_AVR_MICRO ) && not defined ( ARDUINO_AVR_ESPLORA ) && not defined ( ARDUINO_AVR_LILYPAD_USB ) && not defined ( ARDUINO_AVR_YUNMINI ) && not defined ( ARDUINO_AVR_INDUSTRIAL101 ) && not defined ( ARDUINO_AVR_LININO_ONE )
            if( strFull[ 5 ] == 'a' )
            {
                 if( ( !( DHTfunctionResultsArray[ outdoor_temp_sensor1_pin - 1 ].ErrorCode == DEVICE_READ_SUCCESS ) && DHTfunctionResultsArray[ outdoor_temp_sensor1_pin - 1 ].Type < TYPE_ANALOG ) && ( !( DHTfunctionResultsArray[ outdoor_temp_sensor2_pin - 1 ].ErrorCode == DEVICE_READ_SUCCESS ) && DHTfunctionResultsArray[ outdoor_temp_sensor2_pin - 1 ].Type < TYPE_ANALOG ) ) 
@@ -1239,6 +1248,11 @@ doneWithPinOutput:;
            if( !( strFull[ 5 ] == 'a' ) && !( strFull[ 5 ] == 'h' ) && !( strFull[ 5 ] == 'c' ) && !( strFull[ 5 ] == 'o' ) )
            {
             Serial.println( F( "That space you entered also then requires a valid mode. The only valid characters allowed after that space are the options lower case a, o, h, or c. They mean auto, off, heat, and cool and may be fully spelled out" ) );
+#else
+           if( !( strFull[ 5 ] == 'h' ) && !( strFull[ 5 ] == 'c' ) && !( strFull[ 5 ] == 'o' ) )
+           {
+            Serial.println( F( "That space you entered also then requires a valid mode. The only valid characters allowed after that space are the options lower case o, h, or c. They mean off, heat, and cool and may be fully spelled out" ) );
+#endif
             goto showThermostatSetting;
            }
            thermostat_mode = strFull[ 5 ];
@@ -1678,8 +1692,8 @@ void loop()
     }
     else fresh_powerup = false;
         DHTresult* noInterrupt_result = ( DHTresult* )( FetchTemp( primary_temp_sensor_pin, RECENT ) ); 
-        if( noInterrupt_result->ErrorCode != DEVICE_READ_SUCCESS && noInterrupt_result->Type < TYPE_ANALOG ) noInterrupt_result = ( DHTresult* )( FetchTemp( secondary_temp_sensor_pin, RECENT ) );
-        if( ( noInterrupt_result->ErrorCode == DEVICE_READ_SUCCESS && noInterrupt_result->Type < TYPE_ANALOG ) || noInterrupt_result->Type == TYPE_ANALOG )
+        if( noInterrupt_result->ErrorCode != DEVICE_READ_SUCCESS && noInterrupt_result->Type != TYPE_ANALOG ) noInterrupt_result = ( DHTresult* )( FetchTemp( secondary_temp_sensor_pin, RECENT ) );
+        if( ( noInterrupt_result->ErrorCode == DEVICE_READ_SUCCESS && noInterrupt_result->Type != TYPE_ANALOG ) || noInterrupt_result->Type == TYPE_ANALOG )
         {
             timeOfLastSensorTimeoutError = 0;
             if( noInterrupt_result->TemperatureCelsius & 0x8000 ) _TemperatureCelsius = 0 - ( float )( ( float )( noInterrupt_result->TemperatureCelsius & 0x7FFF )/ 10 );
@@ -1719,11 +1733,12 @@ void loop()
                 timer_alert_furnace_sent = 0;
                 cool_state = false;
             }
+#if not defined ( __LGT8FX8E__ ) && not defined ( ARDUINO_AVR_YUN ) && not defined ( ARDUINO_AVR_LEONARDO ) && not defined ( ARDUINO_AVR_LEONARDO_ETH ) && not defined ( ARDUINO_AVR_MICRO ) && not defined ( ARDUINO_AVR_ESPLORA ) && not defined ( ARDUINO_AVR_LILYPAD_USB ) && not defined ( ARDUINO_AVR_YUNMINI ) && not defined ( ARDUINO_AVR_INDUSTRIAL101 ) && not defined ( ARDUINO_AVR_LININO_ONE )
             else if( thermostat_mode == 'a' )
             {
                 noInterrupt_result = ( DHTresult* )( FetchTemp( outdoor_temp_sensor1_pin, RECENT ) ); 
                 if( noInterrupt_result->ErrorCode != DEVICE_READ_SUCCESS && noInterrupt_result->Type != TYPE_ANALOG ) noInterrupt_result = ( DHTresult* )( FetchTemp( outdoor_temp_sensor2_pin, RECENT ) );
-                if( ( noInterrupt_result->ErrorCode == DEVICE_READ_SUCCESS && noInterrupt_result->Type != TYPE_ANALOG ) || noInterrupt_result->Type == TYPE_ANALOG )
+                if( ( noInterrupt_result->ErrorCode == DEVICE_READ_SUCCESS && noInterrupt_result->Type != TYPE_ANALOG ) || DEVICE_READ_SUCCESS )
                 {
                     if( noInterrupt_result->TemperatureCelsius & 0x8000 ) O_TemperatureCelsius = 0 - ( float )( ( float )( noInterrupt_result->TemperatureCelsius & 0x7FFF )/ 10 );
                     else O_TemperatureCelsius = ( float )( ( float )( noInterrupt_result->TemperatureCelsius & 0x7FFF )/ 10 );
@@ -1731,6 +1746,7 @@ void loop()
                     else cool_on_loop();
                 }
             }
+#endif
             else if( thermostat_mode == 'h' ) heat_on_loop(); //This heat loop is all that the WeMo/TTGO XI can do as thermostat
             else if( thermostat_mode == 'c' ) cool_on_loop();
         }
@@ -1743,7 +1759,7 @@ void loop()
         }
         for( u8 i = 0; i < 4; i++ )
         {
-            check_for_serial_input( noInterrupt_result->ErrorCode );
+            check_for_serial_input();
             delay( 500 );
         }
 #endif
