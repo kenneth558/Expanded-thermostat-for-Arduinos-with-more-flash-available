@@ -1,8 +1,9 @@
-# Use of KY-013 almost supported, but not yet
-
 # Thermostat...expanded for Arduinos with more flash available
 This adds features that the first thermostat sketch could not fit into a number of 32K flash Arduinos that did not make 
-their full flash capacity available for sketches. So don't expect this expanded one to fit in Leonardos, Esplora nor Yún, for examples.  If you need KY-013 analog sensors with those boards, see my thermostat repository where I removed the thermostat "auto" option so those boards can have calibrated KY-013 with DHT capability.  At some point in future enhancements, I foresee a time when the sketch will require the board to have at least 64K flash size.
+their full flash capacity available for sketches. So don't expect the auto thermostat mode option to be available in 
+Leonardos, Esplora nor Yún, for examples.  So those boards can have calibrated KY-013 with DHT capability with this 
+version.  At some point in future enhancements, I foresee a time when the sketch will require the board to have at least 
+64K flash size.
 
 First, a recap of the base features included in the thermostat version for 32K flash boards that don't allow that full 
 32K for sketches:
@@ -79,16 +80,18 @@ WANTED:  ASSISTANCE CONDENSING THE SIZE OF THIS SKETCH BY USE OF ASM CODE.  ANY 
 An array of calibration offsets, one per Analog pin, begins at the EEPROM address stored in EEPROM addresses 12 and 13.
 Both 12 & 13 had to be used to store an EEPROM address because the size of EEPROM is greater than 256.  MSB is in 13
 (little endian, though I protest the de facto nomenclature as being backwards).  The factory defaults this value for entire
-array to one that worked for uno when the KY-013 was powered by 5vdc: -56, for all Analog pins.  Since the -56 is displayed
-as an unsigned char, it shows as 200 when viewing persistent memory.  When manually changing a calibration offset for a
+array to one that worked for uno when the KY-013 was powered by 5vdc: -31, for all Analog pins.  Since the -31 is displayed
+as an unsigned char, it shows as 225 when viewing persistent memory.  When manually changing a calibration offset for a
 sensor, you'll need to enter the value as an unsigned char inasmuch as values above 127 to 255 are actually negative
 offsets: 255 = -1 and 200 = -56.
 
-So you ask, "What does the -56 correlate to?"  Right now as this sentence is being typed, 20% of that number is a simple
-add to the raw analog reading.  The other 80% of that value is scaled by how close/distant the reading is from mid-scale
-(512) - the closer to mid-scale, the more of that last 80% of the value is added again.  The source code is written with
-those two elements of the ratio nearby each other in an editor for easy adjustment if you'd rather have more of the offset
-being absolute or be based on the analog value received by the pin.  I don't expect this to be the final calibration algorithm I employ.
+So you ask, "What does the -31 correlate to?"  Right now as this sentence is being typed, 20% of that number is a simple
+add to the computed temperature reading.  The other 80% of that value is scaled by how close/distant the reading is from 
+near mid-scale (565) - the closer to that near mid-scale point, the more of that last 80% of the value is added to the raw 
+analog read value from the pin, prior to calculations the produce a temperature from the raw value.  The source code is 
+written with those two elements of the ratio nearby each other in an editor for easy adjustment if you'd rather have more 
+of the offset being absolute or be based on the analog value received by the pin.  I don't expect this to be the final 
+calibration algorithm I employ.
 
 Again, just to clarify, that value is set to a default value when the sketch configures EEPROM at first-run, and you, the
 user/sketch-editor are expected to fine-tune the value.  There is a separate value for each analog pin in an array whose
