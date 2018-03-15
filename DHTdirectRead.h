@@ -39,22 +39,15 @@ typedef struct DHTresultStruct
     unsigned long timeOfLastAccessMillis;
 } DHTresult;
 
-#ifndef __LGT8FX8E__
 DHTresult DHTfunctionResultsArray[ NUM_DIGITAL_PINS + 1 ]; //The last entry will be the return values for "invalid pin numbers sent into the function" 
                                                            //and others like "rollover expected need to wait" where device type shouldn't be mucked with
-#else
-DHTresult DHTfunctionResultsArray[ 15 ]; //The last entry will be the return values for "invalid pin numbers sent into the function" 
-                                                           //and others like "rollover expected need to wait" where device type shouldn't be mucked with
-#endif
-//TODO: make retrieve data into a function
 
-
-//TODO: verify and enforce rest time
 #ifdef PIN_Amax  //stay away from #ifdef PIN_A0 due to possible header file not included, plus this is more purpose-driven
     void ReadAnalogTempFromPin( u8 pin )
     {
         double raw = analogRead( pin );
         DHTfunctionResultsArray[ pin - 1 ].Type = TYPE_ANALOG;
+//Serial.println( raw );
         if( raw > 900 || raw < 20 ) DHTfunctionResultsArray[ pin - 1 ].Type = TYPE_ANALOG + 1;//Readings in this range are indicative of a failed thermistor circuit.  Safety suggests we should assume such.
 
 //I include the capability for what I'll call a "ratio'd regressive-differential-from-midpoint voltage offset and raw temperature offset" style of calibration. It prevents out-of-range adjustment to the raw reading and more closely mimics the thermistor characterstics vs some other means of applied offset
@@ -65,7 +58,11 @@ DHTresult DHTfunctionResultsArray[ 15 ]; //The last entry will be the return val
 //        double Temp = 0.175529 * raw ;//Approximation formula is attributed to University of Stuttgart by Tim Waizenegger: https://github.com/timwaizenegger/raspberrypi-examples/blob/master/sensor-temperature/ky013.py, accessed 03/14/18.  It is useful connecting the excitation power as per KY-013 board markings instead of backwards to them as the normal equation demands
 //        Temp = 125.315 - Temp;       //Though not explicitely stated, I suspect it was derived by taking 3 measurements (125 °C, 0 °C & -55 °C) and determining the linear (no good) equation they best fit using the Wolfram|Alpha algorithm-producing tools at www.wolframalpha.com
 
+#ifndef __LGT8FX8E__
         double Temp = ( double )log( ( float )( ( float )( 10240000 / raw ) - 10000 ) );
+#else
+        double Temp = ( double )log( ( float )( ( float )( 10240000 / raw ) - 8100 ) );
+#endif
         Temp =  ( float )( 1.0 / ( float )( 0.001129148 + ( float )( 0.000234125 + ( float )( 0.0000000876741 * Temp * Temp ) ) * Temp ) );
 
 //Calibration "raw temperature offset" applied here
