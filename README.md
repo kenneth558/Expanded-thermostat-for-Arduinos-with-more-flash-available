@@ -60,6 +60,9 @@ not be able to add features in most 32K flash Arduinos.  Actual compiled sketch 
 boards that allow the entirety of the 32K flash for the user's sketch will have some flash space available for you to add 
 features.
 
+This sketch compiled with IDE version 1.8.6 on 03/14/18.  Older versions of IDE and future library memory footprint 
+expansions can neccessitate tweaking.
+
 TTGO XI/WeMo XI NOTE:  This board trades flash to simulate EEPROM at a cost of 2 to 1.  This sketch assumes your compiler 
 EEPROM command line settings are set for 1K EEPROM.  That is the minimum block size of EEPROM the board allows.  Any more 
 EEPROM by the compiler and this sketch will not fit.  Fortunately for me, my default compiler settings were correct to this
