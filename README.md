@@ -1,14 +1,13 @@
 # Thermostat...expanded for Arduinos with more flash available
 This adds features that the first thermostat sketch could not fit into a number of 32K flash Arduinos that did not make 
-their full flash capacity available for sketches. Don't expect the auto thermostat mode option to be available in 
-Leonardos, Esplora nor Yún, for examples, so that those boards can have calibrated KY-013 with DHT capability with this 
-version.  At some point in future enhancements, I foresee a time when the sketch will require the board to have at least 
-64K flash size.
+their full flash capacity available for sketches. Specifically, don't expect the auto thermostat mode option to be 
+available in Leonardos, Esplora nor Yún, for examples, so that those boards can have calibrated KY-013 with DHT capability 
+with this version.  At some point in future enhancements, I foresee a time when the sketch will require the board to have 
+at least 64K flash size.
 
 You'll need to download four files: the .ino and the three .h files.  
 
-First, a recap of the base features included in the thermostat version for 32K flash boards that don't allow that full 
-32K for sketches:
+First, a recap:
 
 # Arduino_home_thermostat
 I use this sketch in the Arduino UNO, Mega2560, nano, etc. as my thermostat, and you can easily modify
