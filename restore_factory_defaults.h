@@ -156,19 +156,11 @@ void restore_factory_defaults()
 //The calibration offset is applied in both of two ways: 80% is applied up front to the raw device reading in a "regressive-differential-from-midpoint" style, the other 20% is applied after computation to the resultant temperature directly.    The 80-20 split is absolutely total guesswork on my part.
 //Calibration offset values from 0 to 127 move the temperature positive; values from 128 to 255 move it negative.  Both the 80% and 20% portions affects the resultant in the same direction as each other.
 #else
-        EEPROMupdate( calibration_offset + i, 225 );
+        EEPROMupdate( calibration_offset + i, 195 );
 #endif
 //        Serial.println( analog_pin_list[ i ] );
     }
 #endif
-//    Serial.println( logging_address );//
-//    Serial.println( upper_heat_temp_address );// = logging_address - sizeof( short );//EEPROMlength - 2;
-//    Serial.println( lower_heat_temp_address );// = upper_heat_temp_address - sizeof( short );//EEPROMlength - 3;
-//    Serial.println( logging_temp_changes_address );// = lower_heat_temp_address - sizeof( boolean );//EEPROMlength - 4;
-//    Serial.println( upper_cool_temp_address );// = logging_temp_changes_address - sizeof( short );
-//    Serial.println( lower_cool_temp_address );// = upper_cool_temp_address - sizeof( short );
-//    Serial.println( calibration_offset );// = upper_cool_temp_address - sizeof( short );
-//    Serial.println( i );// = upper_cool_temp_address - sizeof( short );
     assign_pins( NOT_RUNNING );
 
     Serial.println( F( "Done. Unplug board now if desired." ) );
