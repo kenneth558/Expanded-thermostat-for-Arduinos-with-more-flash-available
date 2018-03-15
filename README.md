@@ -88,9 +88,9 @@ offsets: 255 = -1 and 200 = -56.
 So you ask, "What does the -31 correlate to?"  Right now as this sentence is being typed, 20% of that number is a simple
 add to the computed temperature reading.  The other 80% of that value is scaled by how close/distant the reading is from 
 near mid-scale (565) - the closer to that near mid-scale point, the more of that last 80% of the value is added to the raw 
-analog read value from the pin, prior to calculations the produce a temperature from the raw value.  The source code is 
-written with those two elements of the ratio nearby each other in an editor for easy adjustment if you'd rather have more 
-of the offset being absolute or be based on the analog value received by the pin.  I don't expect this to be the final 
+analog read value from the pin, prior to the calculations that produce a temperature from the raw value.  The source code 
+is written with those two elements of the ratio nearby each other in an editor for easy adjustment if you'd rather have 
+more of the offset being absolute or be based on the analog value received by the pin.  I don't expect this to be the final 
 calibration algorithm I employ.
 
 Again, just to clarify, that value is set to a default value when the sketch configures EEPROM at first-run, and you, the
