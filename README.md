@@ -9,7 +9,7 @@ You'll need to download four files: the .ino and the three .h files.
 
 First, a recap:
 
-# Arduino_home_thermostat
+# Arduino Home Thermostat and Automation Hub
 I use this sketch in the Arduino UNO, Mega2560, nano, etc. as my thermostat, and you can easily modify
 it for humidistat as well.  I have compiled it for all boards I could select in the IDE and ensured it would compile for 
 the boards having at least 32K flash.
