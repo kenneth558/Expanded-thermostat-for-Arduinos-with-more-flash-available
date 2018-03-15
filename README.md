@@ -5,10 +5,10 @@ Leonardos, Esplora nor Yún, for examples, so that those boards can have calibra
 version.  At some point in future enhancements, I foresee a time when the sketch will require the board to have at least 
 64K flash size.
 
+You'll need to download four files: the .ino and the three .h files.  
+
 First, a recap of the base features included in the thermostat version for 32K flash boards that don't allow that full 
 32K for sketches:
-
-You'll need to download four files: the .ino and the three .h files.  
 
 # Arduino_home_thermostat
 I use this sketch in the Arduino UNO, Mega2560, nano, etc. as my thermostat, and you can easily modify
