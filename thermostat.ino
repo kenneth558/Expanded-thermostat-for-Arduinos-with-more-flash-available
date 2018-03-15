@@ -18,9 +18,9 @@
  *                                                                  fan is the term for same part but for the thermostat operator person
  * 
  *************************************************************************************************************************/
-#define VERSION "0.10"
-// On the first run of this sketch, if you received an error message about the following line...
-// #define RESTORE_FACTORY_DEFAULTS //As the error message said, uncomment this line, compile & load for first run EEPROM setup in WeMo XI/TTGO XI and any other board that needs it, then comment back out and recompile and load b/c sketch would be too long otherwise
+#define VERSION "0.11"
+//On the first run of this sketch, if you received an error message about the following line...
+//#define RESTORE_FACTORY_DEFAULTS //As the error message said, uncomment this line, compile & load for first run EEPROM setup in WeMo XI/TTGO XI and any other board that needs it, then comment back out and recompile and load b/c sketch would be too long otherwise
 #ifndef u8
     #define u8 uint8_t
 #endif
@@ -30,7 +30,6 @@
 #include "analog_pin_adjust.h"
 #include <EEPROM.h> // Any board that errors compiling this line is unsuitable to be a thermostat because it cannot store settings persistently
 #include "DHTdirectRead.h"
-#include <math.h>
 #define _baud_rate_ 57600 //Very much dependent upon the capability of the host computer to process talkback data, not just baud rate of its interface
 #if not defined ( __LGT8FX8E__ ) && not defined ( ARDUINO_AVR_YUN ) && not defined ( ARDUINO_AVR_LEONARDO ) && not defined ( ARDUINO_AVR_LEONARDO_ETH ) && not defined ( ARDUINO_AVR_MICRO ) && not defined ( ARDUINO_AVR_ESPLORA ) && not defined ( ARDUINO_AVR_LILYPAD_USB ) && not defined ( ARDUINO_AVR_YUNMINI ) && not defined ( ARDUINO_AVR_INDUSTRIAL101 ) && not defined ( ARDUINO_AVR_LININO_ONE )
     #ifndef RESTORE_FACTORY_DEFAULTS
@@ -513,25 +512,28 @@ void printBasicInfo()
     Serial.print( cool_pin );
     Serial.print( F( "@" ) );
     Serial.println( cool_pin_address );
-    Serial.print( F( "host/aux system power_cycle_pin=" ) );
+    Serial.print( F( "system power pin=" ) );
     Serial.print( power_cycle_pin );
     Serial.print( F( "@" ) );
     Serial.println( power_cycle_pin_address );
     Serial.println( F( "  (pin@EEPROM address)" ) );
     Serial.print( F( "LED_BUILTIN pin=" ) );
     Serial.println( LED_BUILTIN );
+//    Serial.print( F( "Analog pins=" ) );
+//    for( u8 i = 0; i < sizeof( analog_pin_list ); i++ )
+//        Serial.println( analog_pin_list[ i ] );
     Serial.println( F( "." ) );
     Serial.println( F( "Pin numbers may otherwise be period (all pins) with +/-/! for setting and forcing reserved pins" ) );
     Serial.println( F( "Example: pin set to output .-! (results in all pins [.] being set to output with low logic level [-], even reserved pins [!])" ) );
     Serial.println( F( "Valid commands, cAsE sEnSiTiVe:" ) );
     Serial.println( F( "." ) );
-    Serial.println( F( "help (print this screen)" ) );
+    Serial.println( F( "help (show this screen)" ) );
     Serial.println( F( "ther[mostat][ a[uto]/ o[ff]/ h[eat]/ c[ool]] (read or set thermostat mode)" ) );//, auto requires outdoor sensor[s] and reverts to heat if sensor[s] fail)" ) );
     Serial.println( F( "fan[ a[uto]/ o[n]] (read or set fan)" ) );
-    Serial.println( F( "heat start low temp[ <°C>] (to turn heat on at this or lower temperature, persistent)" ) );//not worth converting for some unkown odd reason
-    Serial.println( F( "heat stop high temp[ <°C>] (to turn heat off at this or higher temperature, persistent)" ) );
-    Serial.println( F( "cool stop low temp[ <°C>] (to turn A/C off at this or lower temperature, persistent)" ) );
-    Serial.println( F( "cool start high temp[ <°C>] (to turn A/C on at this or higher temperature, persistent)" ) );
+    Serial.println( F( "heat start low temp[ <°C>] (heat turns on at this or lower temperature)" ) );//not worth converting for some unkown odd reason
+    Serial.println( F( "heat stop high temp[ <°C>] (heat turns off at this or higher temperature)" ) );
+    Serial.println( F( "cool stop low temp[ <°C>] (A/C turns off at this or lower temperature)" ) );
+    Serial.println( F( "cool start high temp[ <°C>] (A/C turns on at this or higher temperature)" ) );
 
 //    Serial.print( ( const __FlashStringHelper * )str_heat_temps );//uses more bytes this way
     Serial.println( F( "heat temps[ <°C>] (adjust heat settings up, use - for down)" ) );
