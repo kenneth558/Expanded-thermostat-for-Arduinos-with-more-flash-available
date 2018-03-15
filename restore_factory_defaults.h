@@ -37,9 +37,9 @@ void restore_factory_defaults()
     Serial.print( F( ", fan mode=" ) );
     Serial.println( factory_setting_fan_mode );
 #ifndef __LGT8FX8E__
-    EEPROM.update( primary_temp_sensor_address, factory_setting_primary_temp_sensor_pin );
+    EEPROM.update( primary_temp_sensor_pin_address, factory_setting_primary_temp_sensor_pin );
 #else
-    EEPROMupdate( primary_temp_sensor_address, factory_setting_primary_temp_sensor_pin );
+    EEPROMupdate( primary_temp_sensor_pin_address, factory_setting_primary_temp_sensor_pin );
 #endif
 #ifndef __LGT8FX8E__
     EEPROM.update( heat_pin_address, factory_setting_heat_pin );
@@ -52,9 +52,9 @@ void restore_factory_defaults()
     EEPROMupdate( furnace_blower_pin_address, factory_setting_furnace_blower_pin );
 #endif
 #ifndef __LGT8FX8E__
-    EEPROM.update( power_cycle_address, factory_setting_power_cycle_pin );
+    EEPROM.update( power_cycle_pin_address, factory_setting_power_cycle_pin );
 #else
-    EEPROMupdate( power_cycle_address, factory_setting_power_cycle_pin );
+    EEPROMupdate( power_cycle_pin_address, factory_setting_power_cycle_pin );
 #endif
 #ifndef __LGT8FX8E__
     EEPROM.update( logging_address, factory_setting_logging_setting );
@@ -107,19 +107,19 @@ void restore_factory_defaults()
 #endif
 
 #ifndef __LGT8FX8E__
-    EEPROM.update( secondary_temp_sensor_address, factory_setting_secondary_temp_sensor_pin );
+    EEPROM.update( secondary_temp_sensor_pin_address, factory_setting_secondary_temp_sensor_pin );
 #else
-    EEPROMupdate( secondary_temp_sensor_address, factory_setting_secondary_temp_sensor_pin );
+    EEPROMupdate( secondary_temp_sensor_pin_address, factory_setting_secondary_temp_sensor_pin );
 #endif
 #ifndef __LGT8FX8E__
-    EEPROM.update( outdoor_temp_sensor1_address, factory_setting_outdoor_temp_sensor1_pin );
+    EEPROM.update( outdoor_temp_sensor1_pin_address, factory_setting_outdoor_temp_sensor1_pin );
 #else
-    EEPROMupdate( outdoor_temp_sensor1_address, factory_setting_outdoor_temp_sensor1_pin );
+    EEPROMupdate( outdoor_temp_sensor1_pin_address, factory_setting_outdoor_temp_sensor1_pin );
 #endif
 #ifndef __LGT8FX8E__
-    EEPROM.update( outdoor_temp_sensor2_address, factory_setting_outdoor_temp_sensor2_pin );
+    EEPROM.update( outdoor_temp_sensor2_pin_address, factory_setting_outdoor_temp_sensor2_pin );
 #else
-    EEPROMupdate( outdoor_temp_sensor2_address, factory_setting_outdoor_temp_sensor2_pin );
+    EEPROMupdate( outdoor_temp_sensor2_pin_address, factory_setting_outdoor_temp_sensor2_pin );
 #endif
 
 // no EEPROM updates allowed while in interrupts
@@ -144,7 +144,7 @@ void restore_factory_defaults()
         EEPROM.put( calibration_offset_array_start_address_first_byte, ( u16 )lower_cool_temp_address - sizeof( analog_pin_list ) );//This is done so we can more easily change location of this array in future revision, maybe to an end-of-EEPROM-refenced location
     #else
         EEPROMupdate( calibration_offset_array_start_address_first_byte, ( u8 )( lower_cool_temp_address - sizeof( analog_pin_list ) ) );
-        EEPROMupdate( calibration_offset_array_start_address_first_byte + 1, ( u8 )( lower_cool_temp_address - sizeof( analog_pin_list ) ) >> 8 );
+        EEPROMupdate( calibration_offset_array_start_address_first_byte + 1, ( u8 )( lower_cool_temp_address - sizeof( analog_pin_list ) >> 8 ) );
     #endif
     calibration_offset = EEPROM.read( calibration_offset_array_start_address_first_byte );
     calibration_offset += ( ( u16 )EEPROM.read( calibration_offset_array_start_address_first_byte + 1 ) ) << 8;
@@ -152,9 +152,11 @@ void restore_factory_defaults()
     for( i = 0; i < sizeof( analog_pin_list ); i++ )
     {
 #ifndef __LGT8FX8E__
-        EEPROM.update( calibration_offset + i, 200 ); //the 200 unsigned equates to - 56 signed, adjust to your heart's content for a default analog calibration adjust based on supply voltage.  Tweak each sensor uniquely in the array for further accuracy
+        EEPROM.update( calibration_offset + i, 225 ); //the 225 unsigned equates to -31 signed, adjust to your heart's content for a default analog calibration adjust based on supply voltage.  Tweak each sensor individually in the array for further accuracy
+//The calibration offset is applied in both of two ways: 80% is applied up front to the raw device reading in a "regressive-differential-from-midpoint" style, the other 20% is applied after computation to the resultant temperature directly.    The 80-20 split is absolutely total guesswork on my part.
+//Calibration offset values from 0 to 127 move the temperature positive; values from 128 to 255 move it negative.  Both the 80% and 20% portions affects the resultant in the same direction as each other.
 #else
-        EEPROMupdate( calibration_offset + i, 200 );
+        EEPROMupdate( calibration_offset + i, 225 );
 #endif
 //        Serial.println( analog_pin_list[ i ] );
     }
