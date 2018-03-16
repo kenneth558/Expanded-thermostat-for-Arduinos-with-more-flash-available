@@ -16,7 +16,7 @@ the boards having at least 32K flash.
 
 Currently DHT11, DHT22, and KY-013 sensors only are supported.  Obviously, the DHT sensors can connect to Digital and 
 dual-mode pins while the KY-013 can connect to Analog and dual-mode pins. Note that the default accuracy of a KY-013 analog sensor depends on the DC voltage supplying the "-" pin (these sensors are labeled opposite what the sketch formula is!)
-For the best accuracy, adjust the per-sensor pin calibration value OR supply these sensors with an adjustable and stable supply of about 5 volts +/- a volt.  Adjust the voltage for accurate readings.
+For the best accuracy, adjust the per-sensor pin calibration value OR supply these sensors with an adjustable and stable supply of about 5 volts +/- a volt.  Adjust the voltage for accurate readings.  The TTGO/WeMo XI board Analog pins seems to have pullup leakage possibly due to a ltbrary not setting the pins up correctly or fully.  This affects use of KY-013.  My code accomodation for that board's apparent leakage is a very rough approximation adjustment to the formula.  Don't expect it to be accurate at cool outdoor temperatures.  You may instead want to investigate exactly how to set the pins up in code so as to stop the leakage, then re-compile the sketch with the TTGO/WeMo XI check removed from the formula section of code (in the  	DHTdirectRead.h file).
 
 This sketch also makes Arduino digital pins to be readable and settable from an optional serial-connected host computer.  
 The host computer can control and read both the digital voltage levels and DHT data of any pin.  For maximum capability, 
