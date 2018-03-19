@@ -1,22 +1,30 @@
 # Thermostat...expanded for Arduinos with more flash available
 This adds features that the first thermostat sketch could not fit into a number of 32K flash Arduinos that did not make 
-their full flash capacity available for sketches. Specifically, don't expect the auto thermostat mode option to be 
-available in Leonardos, Esplora nor Yún, for examples, so that those boards can have calibrated KY-013 with DHT capability 
-with this version.  At some point in future enhancements, I foresee a time when the sketch will require the board to have 
+their full flash capacity available for sketches. Just don't expect the auto thermostat mode option to be available in 
+Leonardos, Esplora nor Yún, for examples, so that those boards could be given calibrated KY-013 with DHT capability with
+this version.  At some point in future enhancements, I foresee a time when the sketch will require the board to have 
 at least 64K flash size.
 
 You'll need to download four files: the .ino and the three .h files.  
-
-First, a recap:
 
 # Arduino Home Thermostat and Automation Hub
 I use this sketch in the Arduino UNO, Mega2560, nano, etc. as my thermostat, and you can easily modify
 it for humidistat as well.  I have compiled it for all boards I could select in the IDE and ensured it would compile for 
 the boards having at least 32K flash.
 
-Currently DHT11, DHT22, and KY-013 sensors only are supported.  Obviously, the DHT sensors can connect to Digital and 
-dual-mode pins while the KY-013 can connect to Analog and dual-mode pins. Note that the default accuracy of a KY-013 analog sensor depends on the DC voltage supplying the "-" pin (these sensors are labeled opposite what the sketch formula is!)
-For the best accuracy, adjust the per-sensor pin calibration value OR supply these sensors with an adjustable and stable supply of about 5 volts +/- a volt.  Adjust the voltage for accurate readings.  The TTGO/WeMo XI board Analog pins seems to have pullup leakage possibly due to a ltbrary not setting the pins up correctly or fully.  This affects use of KY-013.  My code accomodation for that board's apparent leakage is a very rough approximation adjustment to the formula.  Don't expect it to be accurate at cool outdoor temperatures.  You may instead want to investigate exactly how to set the pins up in code so as to stop the leakage, then re-compile the sketch with the TTGO/WeMo XI check removed from the formula section of code (in the  	DHTdirectRead.h file).
+Currently DHT11, DHT22, and KY-013 sensors only are supported, but since the raw analog reading can be gotten by the host, 
+any analog sensor, temperature or otherwise, can be connected just as long as the host performs any algorithm needed on 
+that raw reading.  Obviously, the DHT sensors can connect to Digital and dual-mode pins while the KY-013 can connect to
+Analog and dual-mode pins. Note that the default accuracy of a KY-013 analog sensor depends on the DC voltage supplying the
+"-" pin (these sensors are labeled opposite what the sketch formula is!)
+
+For the best accuracy, adjust the per-sensor pin calibration value OR supply these sensors with an adjustable and stable 
+supply of about 5 volts +/- a volt.  Adjust the voltage for accurate readings.  The TTGO/WeMo XI board Analog pins seems to 
+have pullup leakage possibly due to a ltbrary not setting the pins up correctly or fully.  This affects use of KY-013.  My 
+code accomodation for that board's apparent leakage is a very rough approximation adjustment to the formula.  Don't expect 
+it to be accurate at cool outdoor temperatures.  You may instead want to investigate exactly how to set the pins up in code 
+so as to stop the leakage, then re-compile the sketch with the TTGO/WeMo XI check removed from the formula section of code 
+(in the DHTdirectRead.h file).
 
 This sketch also makes Arduino digital pins to be readable and settable from an optional serial-connected host computer.  
 The host computer can control and read both the digital voltage levels and DHT data of any pin.  For maximum capability, 
@@ -32,15 +40,16 @@ alerts to the host for furnace failure to heat. I use a bash script on the host 
 EEPROM is utilized so the thermostat settings are persistent across power cycling.  I even update the compiled sketch into 
 the board remotely!
 
-See the screen shot of the help screen that it can display.  Sensors must be either DHT11, DHT22, or KY-013 in this version.  It expects two sensors - a primary and a backup (secondary) sensor for failsafe operation.  Because sensors are
+See the screen shot of the help screen that it can display.  Sensors must be either DHT11, DHT22, or KY-013 in this
+version.  It expects two sensors - a primary and a backup (secondary) sensor for failsafe operation.  Because sensors are
 read without utilizing interrupts, any digital pin other than the serial communications can be used for DHT sensors!  A
 little-documented feature is that the pins driving sensors can be forced to only allow DHT devices by adding 128 to the
 EEPROM location storing the digital pin number for that sensor.  This is a safety feature: in case the DHT sensor fails,
 the 128 added to the pin number stored in EEPROM prevents the pin from going into analog mode and interpreting any voltage
 appearing on the pin as a signal from an analog (KY-013) temperature sensor.
 
-This sketch is also a wrapper to allow the host computer to read and control the Arduino digital pins with or without taking
-advantage of the thermostat functionality!  As examples:
+This sketch is also a wrapper to allow the host computer to read and control the Arduino digital pins with or without
+taking advantage of the thermostat functionality!  As examples:
 
 -  I have my host computer calculate when my porchlights are to be turned on and off through a pin by lookup file of sunset
    and sunrise times
@@ -103,5 +112,6 @@ items stored to be unpredictably located, and I'd rather have that stable EEPROM
 feature (probably user-defined pin names).
 
 Note that to convert an address stored spanning two locations, you consider the second location to be showing the number of 
-times 256 can fit in the final number:  if location 13 has a 3, for example, that becomes 768 added to whatever value is in loation 12.
+times 256 can fit in the final number:  if location 13 has a 3, for example, that becomes 768 added to whatever value is in 
+location 12.
 
