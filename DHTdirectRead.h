@@ -47,34 +47,36 @@ DHTresult DHTfunctionResultsArray[ NUM_DIGITAL_PINS + 1 ]; //The last entry will
     {
         double raw = analogRead( pin );
         DHTfunctionResultsArray[ pin - 1 ].Type = TYPE_ANALOG;
-//Serial.println( raw );
-        if( raw > 900 || raw < 20 ) DHTfunctionResultsArray[ pin - 1 ].Type = TYPE_ANALOG + 1;//Readings in this range are indicative of a failed thermistor circuit.  Safety suggests we should assume such.
-
+        if( raw > 900 || raw < 5 ) DHTfunctionResultsArray[ pin - 1 ].Type = TYPE_ANALOG + 1;//Readings in this range are indicative of a failed thermistor circuit.  Safety suggests we should assume such.
+//KY-013 @ 11.7C raw=481 or 11.4 482 but reads 15.5C accurate @ 21.4 with calibration offset = 230 raw = 553
 //I include the capability for what I'll call a "ratio'd regressive-differential-from-midpoint voltage offset and raw temperature offset" style of calibration. It prevents out-of-range adjustment to the raw reading and more closely mimics the thermistor characterstics vs some other means of applied offset
+//need a var that indicates the mid-point of bridge when both components would have equal resistance, and another var for offset to apply to raw reading
+/*
+ * NTC with thermistor on high side of bridge means raw reading rises with temperature.
+ * If excitation volts are higher ( hypothetical and unrealistic ) than circuit volts, the midpoint could be 600.
+ * If excitation volts are lower than circuit volts ( if you well-meaningly excited it with 3.3 volts but having a 5v board, or used the anaolg voltage reference to excite it), the midpoint could be 400
+ * THIS SKETCH USES A COMMONLY KNOWN ALGORITHM THAT ASSUMES A MIDPOINT OF 512.  That means the characteristics are assumed to be those where the bridge is excited by the same voltage that the uController (micro-controller) runs at
+ */
 //Calibration "regressive-differential_from-midpint voltage offset" applied here
-        raw += ( signed char )EEPROM.read( calibration_offset + ( unsigned long )memchr( analog_pin_list, pin, PIN_Amax ) - ( unsigned long )&analog_pin_list[ 0 ] ) * 0.8 * ( float )( 1 - ( ( float )max( abs( ( long signed )( 565 - raw ) ), abs( ( long signed )( raw - 565 ) ) ) / 512 ) );
+        raw += ( signed char )EEPROM.read( calibration_offset + ( unsigned long )memchr( analog_pin_list, pin, PIN_Amax ) - ( unsigned long )&analog_pin_list[ 0 ] ) * 2 * ( float )( 1 - ( ( float )max( abs( ( long signed )( 565 - raw ) ), abs( ( long signed )( raw - 565 ) ) ) / 512 ) );
 
 //At this point in time, I do not know how the following formula can be calibrated non-linearly to best conform to the true characteristics of the KY-013.  
 //        double Temp = 0.175529 * raw ;//Approximation formula is attributed to University of Stuttgart by Tim Waizenegger: https://github.com/timwaizenegger/raspberrypi-examples/blob/master/sensor-temperature/ky013.py, accessed 03/14/18.  It is useful connecting the excitation power as per KY-013 board markings instead of backwards to them as the normal equation demands
 //        Temp = 125.315 - Temp;       //Though not explicitely stated, I suspect it was derived by taking 3 measurements (125 °C, 0 °C & -55 °C) and determining the linear (no good) equation they best fit using the Wolfram|Alpha algorithm-producing tools at www.wolframalpha.com
-
+//  Only for when energizing voltage is same as board voltage?
 #ifndef __LGT8FX8E__
-        double Temp = ( double )log( ( float )( ( float )( 10240000 / raw ) - 10000 ) );
+        double Temp = ( double )log( ( float )( ( float )( 10240000 / raw ) - 10000 ) );//original: 22.3-28.6 range 6.3 need 10
 #else
-        double Temp = ( double )log( ( float )( ( float )( 10240000 / raw ) - 8100 ) );
+        double Temp = ( double )log( ( float )( ( float )( 10240000 / raw ) - 8100 ) );//B/C some pull-up conductance seems to exist
 #endif
-        Temp =  ( float )( 1.0 / ( float )( 0.001129148 + ( float )( 0.000234125 + ( float )( 0.0000000876741 * Temp * Temp ) ) * Temp ) );
-
-//Calibration "raw temperature offset" applied here
-        Temp = Temp + ( signed char )EEPROM.read( calibration_offset + ( unsigned long )memchr( analog_pin_list, pin, PIN_Amax ) - ( unsigned long )&analog_pin_list[ 0 ] ) * 0.2;
-
+        Temp =  ( float )( 1.0 / ( float )( 0.001129148 + ( float )( 0.000234125 + ( float )( 0.0000000876741 * Temp * Temp ) ) * Temp ) );//original: 22.3-28.6 range
         Temp -= 273.15;
         if( pin > ( u8 ) ( sizeof( DHTfunctionResultsArray ) / sizeof( DHTresultStruct ) ) )
             pin = ( u8 ) ( sizeof( DHTfunctionResultsArray ) / sizeof( DHTresultStruct ) );//Analog pins not having digital modes will return with this array member
         DHTfunctionResultsArray[ pin - 1 ].TemperatureCelsius = ( short )( ( abs( Temp ) * 10 ) );
         if( Temp < 0 )
         {
-            *(u16 *)( &DHTfunctionResultsArray[ pin - 1 ].TemperatureCelsius ) |= 0x8000;
+              DHTfunctionResultsArray[ pin - 1 ].TemperatureCelsius |= 0x8000;
         }
     }
 #endif
@@ -152,7 +154,7 @@ tryAnalog:;
         u8 bitnumber = 0;
         u8 DataStreamBits[ 5 ];
         u16* DataStreamBits0 = ( u16* )&DataStreamBits[ 0 ];
-        u16* DataStreamBits2 = ( u16* )&DataStreamBits[ 2 ];
+        u16* DataStreamBits2 = ( u16* )&DataStreamBits[ 2 ];//the sign bit will be bit 7 of second byte of second element (DataStreamBits[ 3 ]) (little-endian protocol), but the device reports in big-endian, so sequence gets changed later
         for( u8 d = 0; d < sizeof( DataStreamBits ); d++ ) DataStreamBits[ d ] = 0;
         while( bitnumber < 40 )
         {
@@ -190,7 +192,7 @@ tryAnalog:;
         }
         pinMode( pin, OUTPUT );
         digitalWrite( pin, HIGH );
-
+//        u8 sign_bit = DataStreamBits[ 2 ] & 0x80;
         if( ( u8 )( DataStreamBits[ 0 ] + DataStreamBits[ 1 ] + DataStreamBits[ 2 ] + DataStreamBits[ 3 ] ) !=  DataStreamBits[ 4 ] )
         {
             DHTfunctionResultsArray[ pin - 1 ].ErrorCode = DEVICE_CRC_ERROR;
@@ -205,7 +207,7 @@ tryAnalog:;
         }
         else if( DataStreamBits[ 2 ] & 0x80 )
         {
-            if( ( ( DataStreamBits[ 2 ] & 0x7f ) * 256 ) + DataStreamBits[ 3 ] > 410 ) //81.0C max allowed
+            if( ( ( DataStreamBits[ 2 ] & 0x7f ) * 256 ) + DataStreamBits[ 3 ] > 410 ) //81.0C max allowed, means -81.0C 
             {
                 DHTfunctionResultsArray[ pin - 1 ].ErrorCode = DEVICE_BYTES0and1_ERROR;
                 return;
@@ -215,7 +217,7 @@ tryAnalog:;
         else if( !DataStreamBits[ 1 ] && !DataStreamBits[ 3 ] )
         {
             if( DataStreamBits[ 0 ] < 4 && DataStreamBits[ 2 ] < 4 )
-                goto likely_22;//likely, not known, this is the readings of commonality between both 11 and 22.  We favor the 22 b/c its rest time is compatible with 11, not other way around
+                goto likely_22;//likely, not known, this is in the range of readings of commonality between both 11 and 22.  We favor the 22 b/c its rest time will work on DHT11, not other way around
             else if( DataStreamBits[ 0 ] > 81 || DataStreamBits[ 0 ] < 18 )//must be 18-81
                 goto byte0_error;
             else if( DataStreamBits[ 2 ] > 55 )//must be 0-51 for 11, 22 already accounted for by above readings of commonality check
@@ -243,12 +245,13 @@ known_22:;
 known_22_plus_one:;
             //changing from 22 to 11 is fine but not the other way
             DHTfunctionResultsArray[ pin - 1 ].ErrorCode = DEVICE_READ_SUCCESS;
-            DataStreamBits[ 4 ] = DataStreamBits[ 3 ];
-            DataStreamBits[ 3 ] = DataStreamBits[ 2 ];
+            DataStreamBits[ 4 ] = DataStreamBits[ 3 ];// This sequence moves bytes into little-endian compatibility
+            DataStreamBits[ 3 ] = DataStreamBits[ 2 ];// This byte holds the temperature sign bit
             DataStreamBits[ 2 ] = DataStreamBits[ 1 ];
             DataStreamBits[ 1 ] = DataStreamBits[ 0 ];
             DataStreamBits[ 0 ] = DataStreamBits[ 2 ];
             DataStreamBits[ 2 ] = DataStreamBits[ 4 ];
+//DataStreamBits[ 3 ] |= 0x80;//To test negative temperatures processing
 //        }
         goto past_device_type_sort;
 likely_22:;
@@ -266,11 +269,11 @@ known_11:;
         DHTfunctionResultsArray[ pin - 1 ].Type = TYPE_KNOWN_DHT11;
 known_11_plus_one:;
         DHTfunctionResultsArray[ pin - 1 ].ErrorCode = DEVICE_READ_SUCCESS;
-        *DataStreamBits0 = ( u16 )( ( DataStreamBits[ 0 ] << 1 ) + ( DataStreamBits[ 0 ] << 3 ) );//multiplies by 10
-        *DataStreamBits2 = ( u16 )( ( DataStreamBits[ 2 ] << 1 ) + ( DataStreamBits[ 2 ] << 3 ) );//multiplies by 10
+        *DataStreamBits0 = ( u16 )( ( DataStreamBits[ 0 ] << 1 ) + ( DataStreamBits[ 0 ] << 3 ) );//multiplies by 10 //Value needs to be multiplied by 10 to imitate DHT22
+        *DataStreamBits2 = ( u16 )( ( DataStreamBits[ 2 ] << 1 ) + ( DataStreamBits[ 2 ] << 3 ) );//multiplies by 10 //No sign bit with DHT11, and its value needs to be multiplied by 10 to imitate DHT22
 past_device_type_sort:;
-        DHTfunctionResultsArray[ pin - 1 ].TemperatureCelsius = *DataStreamBits2;
         DHTfunctionResultsArray[ pin - 1 ].HumidityPercent = *DataStreamBits0;
+        DHTfunctionResultsArray[ pin - 1 ].TemperatureCelsius = *DataStreamBits2;// Second byte holds the temperature sign bit b/c we changed this to to little endian short int (2-byte int with Arduino convention)
 }
 
 
