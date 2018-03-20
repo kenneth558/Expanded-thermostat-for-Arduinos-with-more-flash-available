@@ -1,8 +1,8 @@
 /***********************************************************************************************************************
- *      ARDUINO HOME THERMOSTAT SKETCH  v.0.11
+ *      ARDUINO HOME THERMOSTAT SKETCH  v.0.12
  *      Author:  Kenneth L. Anderson
  *      Boards tested on: Uno Mega2560 WeMo XI/TTGO XI Leonardo Nano
- *      Date:  03/18/18
+ *      Date:  03/20/18
  * 
  *     I RECOMMEND WHEN USING A DIGITAL SENSOR ON A PIN THAT YOU ADD 128 TO THE PIN NUMBER WHEN STORING IT IN EEPROM SO IF THE DIGITAL SENSOR FAILS THE SKETCH WILL NOT REVERT TO READ AN INVALID ANALOG VALUE FROM THAT PIN!
  * 
@@ -18,7 +18,7 @@
  *                                                                  fan is the term for same part but for the thermostat operator person
  * 
  *************************************************************************************************************************/
-#define VERSION "0.11"
+#define VERSION "0.12"
 //On the first run of this sketch, if you received an error message about the following line...
 //#define RESTORE_FACTORY_DEFAULTS //As the error message said, uncomment this line, compile & load for first run EEPROM setup in WeMo XI/TTGO XI and any other board that needs it, then comment back out and recompile and load b/c sketch would be too long otherwise
 #ifndef u8
@@ -813,7 +813,8 @@ void print_the_pin_and_sensor_reading( u8 pin_specified, u8 KY013orRaw )
         DHTresult* noInterrupt_result = ( DHTresult* )FetchTemp( pin_specified, LIVE );
         if( noInterrupt_result->ErrorCode == DEVICE_READ_SUCCESS || noInterrupt_result->Type == TYPE_ANALOG )
         {
-            Serial.print( ( float )( ( float )noInterrupt_result->TemperatureCelsius / 10 ), 1 );
+            if( noInterrupt_result->TemperatureCelsius & 0x8000 ) Serial.print( F( "-" ) );//_TemperatureCelsius is a float, so we must mask off bit 15
+            Serial.print( ( float )( ( float )( noInterrupt_result->TemperatureCelsius & 0x7FFF )/ 10 ), 1 );
             Serial.print( F( " °C, " ) );
             Serial.print( ( float )( ( float )noInterrupt_result->HumidityPercent / 10 ), 1 );
             Serial.print( F( " %" ) );
@@ -838,7 +839,13 @@ void print_the_pin_and_sensor_reading( u8 pin_specified, u8 KY013orRaw )
     }
     else
     {
+#ifdef ADC_BITS
+        analogReadResolution(12);
+#endif
         Serial.print( analogRead( pin_specified ) );
+#ifdef ADC_BITS
+        analogReadResolution(10);
+#endif
     }
     Serial.println(); 
 }
@@ -1089,8 +1096,8 @@ void check_for_serial_input()
                     {
                         Serial.print( pin_specified_local );
                     }
-                     if( isanoutput( pin_specified_local, false ) ) Serial.print( F( ": output & logic " ) );
-                     else Serial.print( F( ": input & logic " ) );
+                     if( isanoutput( pin_specified_local, false ) ) Serial.print( F( ": output, logic " ) );
+                     else Serial.print( F( ": input, logic " ) );
                      Serial.println( digitalRead( pin_specified_local ) );
                     if( *number_specified_str != '.' && !( *number_specified_str == ' ' && *( number_specified_str + 1 ) == '.' ) ) 
                     {
@@ -1106,7 +1113,9 @@ void check_for_serial_input()
                 //At this point, is possible user entered "." or a specific analog only pin number
                 if( *number_specified_str != '.' && !( *number_specified_str == ' ' && *( number_specified_str + 1 ) == '.' ) ) 
                 {
-                    print_the_pin_and_sensor_reading( pin_specified, RAW );
+//                    Serial.print( F( ", level: " ) );             //This is all we really want here, but it consumes 16 bytes more flash 27258 vs 27242 for example
+//                    Serial.println( analogRead( pin_specified ) );//This is all we really want here, but it consumes 16 bytes more flash
+                    print_the_pin_and_sensor_reading( pin_specified, RAW );//27242 bytes
                 }
                 else
                 {
@@ -1226,7 +1235,7 @@ noAnalogPins:;
                         {
                             if( pin_print_and_not_sensor( true, pin_specified ) )
                             {
-                                 Serial.print( F( "output & logic " ) );
+                                 Serial.print( F( "output, logic " ) );
                                  Serial.println( digitalRead( pin_specified ) );
                             }
                             else 
@@ -1767,8 +1776,7 @@ void loop()
         if( ( noInterrupt_result->ErrorCode == DEVICE_READ_SUCCESS && noInterrupt_result->Type != TYPE_ANALOG ) || noInterrupt_result->Type == TYPE_ANALOG )
         {
             timeOfLastSensorTimeoutError = 0;
-/*            if( noInterrupt_result->Type == TYPE_ANALOG ) _TemperatureCelsius = noInterrupt_result->TemperatureCelsius;
-            else */if( noInterrupt_result->TemperatureCelsius & 0x8000 ) _TemperatureCelsius = 0 - ( float )( ( float )( noInterrupt_result->TemperatureCelsius & 0x7FFF )/ 10 );
+            if( noInterrupt_result->TemperatureCelsius & 0x8000 ) _TemperatureCelsius = 0 - ( float )( ( float )( noInterrupt_result->TemperatureCelsius & 0x7FFF )/ 10 );
             else _TemperatureCelsius = ( float )( ( float )( noInterrupt_result->TemperatureCelsius & 0x7FFF )/ 10 );
             _HumidityPercent = ( float )( ( float )noInterrupt_result->HumidityPercent / 10 );
             last_three_temps[ last_three_temps_index ] = _TemperatureCelsius;
@@ -1805,22 +1813,21 @@ void loop()
                 timer_alert_furnace_sent = 0;
                 cool_state = false;
             }
-#if not defined ( __LGT8FX8E__ ) && not defined ( ARDUINO_AVR_YUN ) && not defined ( ARDUINO_AVR_LEONARDO ) && not defined ( ARDUINO_AVR_LEONARDO_ETH ) && not defined ( ARDUINO_AVR_MICRO ) && not defined ( ARDUINO_AVR_ESPLORA ) && not defined ( ARDUINO_AVR_LILYPAD_USB ) && not defined ( ARDUINO_AVR_YUNMINI ) && not defined ( ARDUINO_AVR_INDUSTRIAL101 ) && not defined ( ARDUINO_AVR_LININO_ONE )
-            else if( thermostat_mode == 'a' )
-            {
-                noInterrupt_result = ( DHTresult* )( FetchTemp( outdoor_temp_sensor1_pin, RECENT ) ); 
-                if( noInterrupt_result->ErrorCode != DEVICE_READ_SUCCESS && noInterrupt_result->Type != TYPE_ANALOG ) noInterrupt_result = ( DHTresult* )( FetchTemp( outdoor_temp_sensor2_pin, RECENT ) );
-                if( ( noInterrupt_result->ErrorCode == DEVICE_READ_SUCCESS && noInterrupt_result->Type != TYPE_ANALOG ) || DEVICE_READ_SUCCESS )
+    #if not defined ( __LGT8FX8E__ ) && not defined ( ARDUINO_AVR_YUN ) && not defined ( ARDUINO_AVR_LEONARDO ) && not defined ( ARDUINO_AVR_LEONARDO_ETH ) && not defined ( ARDUINO_AVR_MICRO ) && not defined ( ARDUINO_AVR_ESPLORA ) && not defined ( ARDUINO_AVR_LILYPAD_USB ) && not defined ( ARDUINO_AVR_YUNMINI ) && not defined ( ARDUINO_AVR_INDUSTRIAL101 ) && not defined ( ARDUINO_AVR_LININO_ONE )
+                else if( thermostat_mode == 'a' )
                 {
-/*                    if( noInterrupt_result->Type == TYPE_ANALOG ) O_TemperatureCelsius = noInterrupt_result->TemperatureCelsius;
-                    else */if( noInterrupt_result->TemperatureCelsius & 0x8000 ) O_TemperatureCelsius = 0 - ( float )( ( float )( noInterrupt_result->TemperatureCelsius & 0x7FFF )/ 10 );
-                    else O_TemperatureCelsius = ( float )( ( float )( noInterrupt_result->TemperatureCelsius & 0x7FFF )/ 10 );
-                    if( O_TemperatureCelsius >= _TemperatureCelsius ) cool_on_loop();//get outdoor temp, use second sensor if first fails, get indoor temp same way, if indoor < outdoor cool_on_loop();
+                    noInterrupt_result = ( DHTresult* )( FetchTemp( outdoor_temp_sensor1_pin, RECENT ) ); 
+                    if( noInterrupt_result->ErrorCode != DEVICE_READ_SUCCESS && noInterrupt_result->Type != TYPE_ANALOG ) noInterrupt_result = ( DHTresult* )( FetchTemp( outdoor_temp_sensor2_pin, RECENT ) );
+                    if( ( noInterrupt_result->ErrorCode == DEVICE_READ_SUCCESS && noInterrupt_result->Type != TYPE_ANALOG ) || DEVICE_READ_SUCCESS )
+                    {
+                        if( noInterrupt_result->TemperatureCelsius & 0x8000 ) O_TemperatureCelsius = 0 - ( float )( ( float )( noInterrupt_result->TemperatureCelsius & 0x7FFF )/ 10 );
+                        else O_TemperatureCelsius = ( float )( ( float )( noInterrupt_result->TemperatureCelsius & 0x7FFF )/ 10 );
+                        if( O_TemperatureCelsius >= _TemperatureCelsius ) cool_on_loop();//get outdoor temp, use second sensor if first fails, get indoor temp same way, if indoor < outdoor cool_on_loop();
+                        else heat_on_loop();
+                    }
                     else heat_on_loop();
                 }
-                else heat_on_loop();
-            }
-#endif
+    #endif
             else if( thermostat_mode == 'h' ) heat_on_loop(); //This heat loop is all that the WeMo/TTGO XI can do as thermostat
             else if( thermostat_mode == 'c' ) cool_on_loop();
         }
